@@ -30,7 +30,7 @@ void DNAStreet::make_from_dgi(DatagramIterator& dgi, DNAStorage* store)
 
 void DNAStreet::traverse(NodePath& np, DNAStorage* store)
 {
-    NodePath& result = store->find_node(m_code);
+    NodePath result = store->find_node(m_code);
     if (result.is_empty())
     {
         raise_code_not_found();
@@ -72,13 +72,13 @@ void DNAStreet::traverse(NodePath& np, DNAStorage* store)
 PT(Texture) DNAStreet::get_texture(const std::string& texture, DNAStorage* store)
 {
     if (!texture.size())
-        return NULL;
+        return nullptr;
    
     PT(Texture) tex = store->find_texture(texture);
     if (!tex)
     {
         raise_code_not_found(texture.c_str());
-        return NULL;
+        return nullptr;
     }
 
     return tex;

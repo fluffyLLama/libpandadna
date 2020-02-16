@@ -24,7 +24,7 @@
 #include <compress_string.h>
 #include <sstream>
 
-DNALoader::DNALoader(): m_cur_comp(NULL), m_cur_store(NULL)
+DNALoader::DNALoader(): m_cur_comp(nullptr), m_cur_store(nullptr)
 {
 }
 
@@ -37,28 +37,30 @@ NodePath DNALoader::load_DNA_file(DNAStorage* store, const Filename& file)
     load_DNA_file_base(store, file);
     dna_cat.debug() << "load_DNA_file_base completed" << std::endl;
 
+    if (!m_cur_comp)
+        return NodePath(); // Empty NodePath
+
     NodePath np = NodePath("dna");
     m_cur_comp->traverse(np, m_cur_store);
 
-    m_cur_store = NULL;
-    delete m_cur_comp; // We don't need it anymore
-    m_cur_comp = NULL;
+    m_cur_store = nullptr;
+    m_cur_comp = nullptr;
 
     return np;
 }
 
-DNAGroup* DNALoader::load_DNA_file_AI(DNAStorage* store, const Filename& file)
+PT(DNAGroup) DNALoader::load_DNA_file_AI(DNAStorage* store, const Filename& file)
 {
     load_DNA_file_base(store, file);
     dna_cat.debug() << "load_DNA_file_base completed" << std::endl;
-    m_cur_store = NULL;
+    m_cur_store = nullptr;
     return m_cur_comp;
 }
 
 void DNALoader::handle_storage_data(DatagramIterator& dgi)
 {
     unsigned short i;
-    
+
     // Catalog codes
     unsigned short num_roots = dgi.get_uint16();
     std::string root;
@@ -69,7 +71,7 @@ void DNALoader::handle_storage_data(DatagramIterator& dgi)
         for (unsigned short j = 0; j < num_codes; j++)
             m_cur_store->store_catalog_code(root, dgi.get_string());
     }
-    
+
     // Textures
     unsigned short num_textures = dgi.get_uint16();
     for (i = 0; i < num_textures; i++)
@@ -79,7 +81,7 @@ void DNALoader::handle_storage_data(DatagramIterator& dgi)
         filename = dgi.get_string();
         m_cur_store->store_texture(code, TexturePool::load_texture(filename));
     }
-    
+
     // Fonts
     unsigned short num_fonts = dgi.get_uint16();
     for (i = 0; i < num_fonts; i++)
@@ -87,42 +89,42 @@ void DNALoader::handle_storage_data(DatagramIterator& dgi)
         std::string code, filename;
         code = dgi.get_string();
         filename = dgi.get_string();
-        m_cur_store->store_font(code, FontPool::load_font(filename));
+        m_cur_store->store_font(code, FontPool::load_font(filename), filename);
     }
-    
+
     // Nodes
     unsigned short num_nodes;
-    
+
     num_nodes = dgi.get_uint16();
     for (i = 0; i < num_nodes; i++)
-    {   
+    {
         std::string filename, code, search;
         code = dgi.get_string();
         filename = dgi.get_string();
         search = dgi.get_string();
         m_cur_store->store_node(filename, search, code);
     }
-    
+
     num_nodes = dgi.get_uint16();
     for (i = 0; i < num_nodes; i++)
-    {   
+    {
         std::string filename, code, search;
         code = dgi.get_string();
         filename = dgi.get_string();
         search = dgi.get_string();
         m_cur_store->store_hood_node(filename, search, code);
     }
-    
+
     num_nodes = dgi.get_uint16();
     for (i = 0; i < num_nodes; i++)
-    {  
+    {
         std::string filename, code, search;
         code = dgi.get_string();
         filename = dgi.get_string();
         search = dgi.get_string();
         m_cur_store->store_place_node(filename, search, code);
     }
-    
+
     // Blocks
     unsigned short num_blocks = dgi.get_uint16();
     for (i = 0; i < num_blocks; i++)
@@ -132,7 +134,7 @@ void DNALoader::handle_storage_data(DatagramIterator& dgi)
         std::string title = dgi.get_string();
         std::string article = dgi.get_string();
         std::string bldg_type = dgi.get_string();
-        
+
         m_cur_store->store_block(number, title, article, bldg_type, zone);
     }
 
@@ -148,19 +150,19 @@ void DNALoader::handle_storage_data(DatagramIterator& dgi)
         y = dgi.get_int32() / 100.0;
         z = dgi.get_int32() / 100.0;
         LPoint3f pos(x, y, z);
-        block_number_t landmark_building_index = dgi.get_int8();
-        
+        block_number_t landmark_building_index = dgi.get_int16();
+
         m_cur_store->store_suit_point(new DNASuitPoint(index, point_type, pos,
                                                        landmark_building_index));
     }
-    
+
     // Suit edges
     unsigned short num_edges = dgi.get_uint16();
     for (i = 0; i < num_edges; i++)
     {
         point_index_t index = dgi.get_uint16();
         point_index_t num_points = dgi.get_uint16();
-        
+
         for (unsigned short j = 0; j < num_points; j++)
         {
             point_index_t end_point = dgi.get_uint16();
@@ -178,15 +180,15 @@ void DNALoader::handle_comp_data(DatagramIterator& dgi)
     {
         unsigned char comp_code = dgi.get_uint8();
         dna_cat.debug() << "code " << (int)comp_code << std::endl;
-        DNAGroup* new_comp;
+        PT(DNAGroup) new_comp;
         if (comp_code == COMPCODE_RETURN)
         {
-            nassertv(m_cur_comp != NULL);
+            nassertv(m_cur_comp != nullptr);
             dna_cat.debug() << "COMPCODE_RETURN:" << std::endl;
-            DNAGroup* p = m_cur_comp->get_parent();
+            PT(DNAGroup) p = m_cur_comp->get_parent();
             dna_cat.debug() << "    current: " << m_cur_comp->get_name()
-                            << ", new: " << (p ? p->get_name() : "NULL") << std::endl;
-            if (p != NULL)
+                            << ", new: " << (p ? p->get_name() : "nullptr") << std::endl;
+            if (p != nullptr)
                 m_cur_comp = p;
 
             else
@@ -194,7 +196,7 @@ void DNALoader::handle_comp_data(DatagramIterator& dgi)
                 nassertv(m_cur_comp->get_name() == "root");
             }
         }
-    
+
         else
         {
             switch (comp_code)
@@ -204,7 +206,7 @@ void DNALoader::handle_comp_data(DatagramIterator& dgi)
                 {
                     new_comp = new DNAVisGroup("unnamed_comp");
                     dna_cat.debug() << "DNAVisGroup" << std::endl;
-                    m_cur_store->store_DNA_vis_group(reinterpret_cast<DNAVisGroup*>(new_comp));
+                    m_cur_store->store_DNA_vis_group(DCAST(DNAVisGroup, new_comp));
                 }; break;
                 ADDCASE(COMPCODE_NODE, DNANode)
                 ADDCASE(COMPCODE_PROP, DNAProp)
@@ -222,14 +224,14 @@ void DNALoader::handle_comp_data(DatagramIterator& dgi)
                 ADDCASE(COMPCODE_DOOR, DNADoor)
                 ADDCASE(COMPCODE_FLAT_DOOR, DNAFlatDoor)
                 ADDCASE(COMPCODE_STREET, DNAStreet)
-        
+
                 default:
                 {
                     dna_cat.fatal() << "invalid comp code: " << (int)comp_code << std::endl;
                     return;
                 }; break;
-            }    
-        
+            }
+
             new_comp->make_from_dgi(dgi, m_cur_store);
             dna_cat.debug() << "    new comp name: " << new_comp->get_name() << std::endl;
             dna_cat.debug() << "make_from_dgi completed" << std::endl;
@@ -241,7 +243,7 @@ void DNALoader::handle_comp_data(DatagramIterator& dgi)
                 m_cur_comp->add(new_comp);
                 dna_cat.debug() << "setting parent done" << std::endl;
             }
-            
+
             if (!new_comp->is_of_type(DNAWindows::get_class_type())
                 && !new_comp->is_of_type(DNACornice::get_class_type())
                 && !new_comp->is_of_type(DNADoor::get_class_type())
@@ -256,22 +258,39 @@ void DNALoader::handle_comp_data(DatagramIterator& dgi)
 void DNALoader::load_DNA_file_base(DNAStorage* store, const Filename& file)
 {
     dna_cat.info() << "loading " << file << std::endl;
-    std::string data = VirtualFileSystem::get_global_ptr()->read_file(file, true);
+
+    static VirtualFileSystem* vfs = VirtualFileSystem::get_global_ptr();
+    Filename found(file);
+    vfs->resolve_filename(found, get_model_path());
+
+    if (!vfs->exists(found))
+    {
+        dna_cat.error() << "unable to open " << file << std::endl;
+        return;
+    }
+
+    std::string data;
+    vfs->read_file(found, data, true);
     m_cur_store = store;
-    Datagram dg(data);
-    DatagramIterator dgi(dg);
-    nassertv_always(dgi.extract_bytes(5) == "PDNA\n");
-    
-    bool compressed = dgi.get_bool();
-    dgi.skip_bytes(1);
+
+    // N.B. because Datagram::operator= gives a linker error on Linux,
+    // let's not use a Datagram to read the first bytes.
+    nassertv(data.size() > 7);
+    nassertv(data.substr(0, 5) == "PDNA\n");
+
+    bool compressed = (data[5] != 0);
+    data = data.substr(7);
+
     if (compressed)
     {
         dna_cat.debug() << "detected compressed data" << std::endl;
-        dg = Datagram(decompress_string(dgi.get_remaining_bytes()));
-        dgi = DatagramIterator(dg);
+        data = decompress_string(data);
     }
-    
-    m_cur_comp = NULL;
+
+    m_cur_comp = nullptr;
+
+    Datagram dg(data.data(), data.size());
+    DatagramIterator dgi(dg);
 
     handle_storage_data(dgi);
     dna_cat.debug() << "storage data read" << std::endl;

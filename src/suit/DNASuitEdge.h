@@ -1,18 +1,21 @@
-#pragma once
+#ifndef _H_DNA_SUITEDGE_
+#define _H_DNA_SUITEDGE_
 
 #include "DNASuitPoint.h"
 
-#include <typedObject.h>
+#include <typedReferenceCount.h>
 
-class EXPCL_DNA DNASuitEdge : public TypedObject
+class EXPCL_DNA DNASuitEdge : public TypedReferenceCount
 {
     PUBLISHED:
-        DNASuitEdge(DNASuitPoint* start_point, DNASuitPoint* end_point, zone_id_t zone_id);
+        DNASuitEdge(PT(DNASuitPoint) start_point, PT(DNASuitPoint) end_point, zone_id_t zone_id);
         ~DNASuitEdge();
-        
+
     PROPERTY(zone_id_t, zone_id);
-    PROPERTY(DNASuitPoint*, start_point);
-    PROPERTY(DNASuitPoint*, end_point);
-        
-    TYPE_HANDLE(DNASuitEdge, TypedObject);
+    PROPERTY(PT(DNASuitPoint), start_point);
+    PROPERTY(PT(DNASuitPoint), end_point);
+
+    TYPE_HANDLE(DNASuitEdge, TypedReferenceCount);
 };
+
+#endif

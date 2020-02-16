@@ -2,21 +2,21 @@
 
 TypeHandle DNAGroup::_type_handle;
 
-DNAGroup::DNAGroup(const std::string& name): m_name(name), m_parent(NULL),
-                                             m_vis_group(NULL)
+DNAGroup::DNAGroup(const std::string& name): m_name(name), m_parent(nullptr),
+                                             m_vis_group(nullptr)
 {
 }
 
 DNAGroup::~DNAGroup()
 {
 }
-        
-void DNAGroup::add(DNAGroup* group)
+
+void DNAGroup::add(PT(DNAGroup) group)
 {
     m_children.push_back(group);
 }
 
-DNAGroup* DNAGroup::at(size_t index)
+PT(DNAGroup) DNAGroup::at(size_t index)
 {
     return m_children.at(index);
 }
@@ -28,20 +28,19 @@ size_t DNAGroup::get_num_children()
 
 void DNAGroup::clear_parent()
 {
-    m_parent = NULL;
-    m_vis_group = NULL;
+    m_parent = nullptr;
+    m_vis_group = nullptr;
 }
 
 void DNAGroup::make_from_dgi(DatagramIterator& dgi, DNAStorage* store)
 {
     m_name = dgi.get_string();
-    dgi.get_string();
-    dgi.get_string();
 }
 
 void DNAGroup::traverse(NodePath& np, DNAStorage* store)
 {
-    traverse_children(np.attach_new_node(m_name), store);
+    NodePath _np = np.attach_new_node(m_name);
+    traverse_children(_np, store);
 }
 
 void DNAGroup::raise_code_not_found()
